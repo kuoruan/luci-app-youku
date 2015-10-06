@@ -1,0 +1,64 @@
+#!/bin/sh
+
+byteFormat() {
+byte=$1
+for i in KB MB GB TB;do
+	if [ $byte -gt 1048576 ] ;then
+			byte="$((byte / 1024))"
+				else
+		echo "$(echo $byte |awk '{print $1/1024}'|cut -c 0-4)$i"
+		break
+		fi
+done
+}
+
+jk="$(uci get -q network.wan.ifname)"
+local today=$(wget -qO - http://pcdnapi.youku.com/pcdn/credit/summary?pid=0000$(uci get youku.youku.opsn)|cut -d '"' -f 15|grep -Eo '[0-9]+')
+sleep 1
+[ -z today ] && today=$(wget -qO - http://pcdnapi.youku.com/pcdn/credit/summary?pid=0000$(uci get youku.youku.opsn)|cut -d '"' -f 15|grep -Eo '[0-9]+')
+#[ -f /etc/oldday ] || echo "0">/etc/oldday
+#[ -f /etc/oldg ] || echo "0">/etc/oldg
+local tog=$(ifconfig $jk|grep "TX bytes:"|awk '{print""$6}'| cut -d : -f 2)	####实时流量
+local lan=$(ifconfig br-lan|grep "RX bytes:"|awk '{print""$6}'| cut -d : -f 2)	####实时br-lan流量
+tog=$((tog-lan))
+local oldday=$(uci get -q youku.credits.credits_today)	##上一小时收益
+sleep 1
+[ -z oldday ] && oldday=$(uci get -q youku.credits.credits_today)	##上一小时收益
+sleep 1
+local old=$(uci get -q youku.credits.today_credits)	##上一小时流量
+sleep 1
+[ -z oldg ] && old=$(uci get -q youku.credits.today_credits)	##上一小时流量
+sleep 1
+[ -z oldday ] && oldday="0"
+[ -z oldg ] && oldg="0"
+if [ "$today" != "$oldday" ];then
+old="$(( tog - old ))"
+oldg=$(byteFormat $old)
+sleep 1
+todaytog=$(($old/3600))
+todaytog="$(byteFormat $todaytog)/s"
+echo $((today-oldday))
+sleep 1
+	cur_t=$(date '+%H')
+	uci set youku.credits.credits_today=$today	##更新上一小时收益
+	uci set youku.credits.today_credits=$tog	##更新上一小时流量
+	uci set youku.credits.today=$todaytog		##更新每小流量
+	if [ $today == "0" ] ;then
+		local oldd=$(uci get -q youku.credits.today_lastday)	##昨天流量
+		local last=$(uci get -q youku.credits.today_last)	##昨天流量
+		[ -z oldd ] && oldd="0"
+		[ -z last ] && last="0"
+		rm -f /etc/today
+		oldd="$(( tog - last ))"
+		oldd=$(byteFormat $oldd)
+		sleep 1
+		tod="1"
+		uci set youku.credits.today_lastday=$oldd	##昨天流量
+		uci set youku.credits.today_last=$tog	##昨天流量
+	fi
+	br=""
+	[ "$cur_t" == "04" -o "$cur_t" == "08" -o "$cur_t" == "12" -o "$cur_t" == "16" ] && br="<br><br>"
+	[ "$cur_t" == "20" -o "$cur_t" == "00" ] && br="<br><br>"
+	echo "$cur_t时： $((today-oldday))金币 $oldg$br">>/etc/today
+	uci commit youku
+fi

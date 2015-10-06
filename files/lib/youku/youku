@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ "$(uci get -q youku.youku.enable)" = "1" ]
+then
+	if [ "$(pidof ikuacc)" = "" ]
+	then
+		sleep 5
+		echo `date +%T`>>/lib/youku/sh
+		/lib/youkudome &
+		sleep 5
+	fi
+fi

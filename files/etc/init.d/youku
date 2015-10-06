@@ -1,0 +1,27 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+boot(){
+uci set youku.credits.today_credits = 0
+uci commit youku
+}
+
+start(){
+killall -9 ikuacc youkudome
+sleep 1
+/lib/youkudome &
+}
+
+stop(){
+killall -9 ikuacc youkudome
+}
+
+restart(){
+killall -9 ikuacc youkudome
+sleep 1
+/lib/youkudome &
+}
+
+
+

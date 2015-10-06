@@ -1,0 +1,15 @@
+#!/bin/sh
+
+jk="$(uci get -q network.wan.ifname)"
+rx1="$(cat /proc/net/dev|grep "$jk"|awk '{print$2}')"
+tx1="$(cat /proc/net/dev|grep "$jk"|awk '{print$10}')"
+sleep 1
+rx2="$(cat /proc/net/dev|grep "$jk"|awk '{print$2}')"
+tx2="$(cat /proc/net/dev|grep "$jk"|awk '{print$10}')"
+awk 'BEGIN{printf "<br><br>下行："'date'"%.2fKB/s",'$(( rx2 - rx1 ))'/'1024'}'
+awk 'BEGIN{printf "<br><br>上行：""%.2fKB/s",'$(( tx2 - tx1 ))'/'1024'}'
+ifconfig $jk|grep "RX bytes:"|tr -d '()'|awk '{print "<br><br>总下载量："$3$4"<br><br>总上传量："$7$8}'
+echo "<br><br>连接数："$(netstat -apn|grep ikuacc|wc -l)
+df -h|grep 'G'|awk '{print "<br><br>挂载目录："$6"  总容量："$2"  剩余空间："$4}'
+# ifstatus wan|grep '"address":'|awk -F '"' '{print "<br><br>WAN口IP："$4}'
+# echo "<br><br>外网IP："$(wget -qO - ddns.oray.com/checkip|tr -cd [0-9.])

@@ -1,0 +1,10 @@
+
+config youku 'youku'
+	option	enable	'0'
+	option	oksn	'0'
+	option	wkmod	'0'
+
+config credits 'credits'
+	option today_lastday '0GB'
+	option today_credits '0'
+	option today '0.KB/s'
