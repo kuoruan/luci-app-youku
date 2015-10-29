@@ -1,0 +1,14 @@
+#!/bin/sh
+
+wan="$(uci get -q network.wan.ifname)"
+rx1="$(cat /proc/net/dev|grep "$wan"|awk '{print $2}')"
+tx1="$(cat /proc/net/dev|grep "$wan"|awk '{print$10}')"
+sleep 1
+rx2="$(cat /proc/net/dev|grep "$wan"|awk '{print $2}')"
+tx2="$(cat /proc/net/dev|grep "$wan"|awk '{print$10}')"
+
+awk 'BEGIN{printf "<br><br><p>下行速度：%.2fKB/s　|　上行速度：%.2fKB/s</P>\n", '$(( rx2 - rx1 ))' / '1024', '$(( tx2 - tx1 ))' / '1024'}'
+ifconfig $wan|grep "RX bytes:"|tr -d '()'|awk '{print "<p>总下载量："$3$4"　|　总上传量："$7$8"</p>"}'
+echo "<p>当前连接数："$(netstat -antp|grep ikuacc|wc -l)"</p>"
+df -h|grep 'G'|awk '{print "<p>挂载目录："$6"　总容量："$2"　剩余空间："$4"</p>"}'
+

@@ -12,7 +12,7 @@ EOF
 	uci set firewall.youku.src="wan"
 	uci set firewall.youku.proto="tcp udp"
 	uci set firewall.youku.dest_port="4466"
-	uci set firewall.youku.name="youkusystem"
+	uci set firewall.youku.name="Youku-System"
 	uci commit firewall
 
 rm -f /tmp/luci-indexcache

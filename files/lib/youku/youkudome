@@ -3,7 +3,7 @@
 export YoukuHome="/tmp/youku"
 
 old=$(cat /tmp/youkudome.pid)
-echo $$ >/tmp/youkudome.pid
+echo $$ > /tmp/youkudome.pid
 [ "$old" ] && kill -9 $old > /dev/null 2>&1
 
 bootup() {
@@ -35,11 +35,10 @@ max-cache-buffer-size=24&\
 	return 0
 }
 local ikuacc="ikuacc"
-path=$(uci get -q youku.@path[0].path)
+path=$(uci get -q youku.@paths[0].path)
 [ -d "$path" ] || return 0;
 bootup
-if [ "$path" = "" ]
-then
+if [ "$path" = "" ]; then
 	killall -9 ikuacc
 	exit 0
 fi
@@ -48,63 +47,59 @@ fi
 [ -d "$path/meta" ]||mkdir -p $path/meta
 ln -sfn $path/meta $YoukuHome
 
-if [ "$(uci get -q youku.youku.enable)" = "0" ]
-then
-	[ "$(cat /etc/crontabs/root|grep /lib/youku/youku)" ] && sed -i 's/\*\/5 \* \* \* \* sh \/lib\/youku\/youku > \/dev\/null 2>&1//g' /etc/crontabs/root
-	[ "$(cat /etc/crontabs/root|grep /lib/today)" ] && sed -i 's/20 \*\/1 \* \* \* sh \/lib\/today > \/dev\/null 2>&1//g' /etc/crontabs/root
+if [ "$(uci get -q youku.general.enable)" = "0" ]; then
+	[ "$(cat /etc/crontabs/root|grep /lib/youku/youkustatus)" ] && sed -i 's/\*\/5 \* \* \* \* \/lib\/youku\/youkustatus > \/dev\/null 2>&1//g' /etc/crontabs/root
 	[ "$(cat /etc/firewall.user|grep "tcp --dport 4466")" ] && sed -i 's/iptables \-I INPUT \-p tcp \-\-dport 4466 \-j ACCEPT//g' /etc/firewall.user
 	[ "$(cat /etc/firewall.user|grep "udp --dport 4466")" ] && sed -i 's/iptables \-I INPUT \-p udp \-\-dport 4466 \-j ACCEPT//g' /etc/firewall.user
 	[ "$(cat /etc/firewall.user|grep "input_wan_rule -p udp")" ] && sed -i 's/iptables \-I input_wan_rule \-p udp \-j ACCEPT//g' /etc/firewall.user
 	killall -9 ikuacc
 	exit 0
 else
-	[ "$(cat /etc/crontabs/root|grep /lib/youku/youku)" ] || echo "*/5 * * * * sh /lib/youku/youku > /dev/null 2>&1">>/etc/crontabs/root	#每5分钟检测程序是否运行
-	[ "$(cat /etc/crontabs/root|grep /lib/today)" ] || echo "20 */1 * * * sh /lib/today > /dev/null 2>&1">>/etc/crontabs/root
+	[ "$(cat /etc/crontabs/root|grep /lib/youku/youkustatus)" ] || echo "*/5 * * * * /lib/youku/youkustatus > /dev/null 2>&1">>/etc/crontabs/root	#每5分钟检测程序是否运行
 	[ "$(cat /etc/firewall.user|grep "tcp --dport 4466")" ] || echo "iptables -I INPUT -p tcp --dport 4466 -j ACCEPT">>/etc/firewall.user
 	[ "$(cat /etc/firewall.user|grep "udp --dport 4466")" ] || echo "iptables -I INPUT -p udp --dport 4466 -j ACCEPT">>/etc/firewall.user
 	[ "$(cat /etc/firewall.user|grep "input_wan_rule -p udp")" ] || echo "iptables -I input_wan_rule -p udp -j ACCEPT">>/etc/firewall.user
 fi
 
-VERSION=$(uci get -q youku.youku.VERSION)
-url=$(grep "\<$VERSION\>" /lib/youku/FILES|awk '{print$3}')
-md6=$(grep "\<$VERSION\>" /lib/youku/FILES|awk '{print$2}')
-if [ ! -z "$VERSION" ]; then
-	if [ ! -e $path/ikuacc/ikuacc.${VERSION} ] ;then
+version=$(uci get -q youku.general.version)
+url=$(grep "\<$version\>" /lib/youku/FILES|awk '{print $3}')
+md6=$(grep "\<$version\>" /lib/youku/FILES|awk '{print $2}')
+if [ ! -z "$version" ]; then
+	if [ ! -e $path/ikuacc/ikuacc.${version} ]; then
 		while [ "$md5" != "$md6" ] #比对MD5.
 		do
 		wget -qO /tmp/youku/ipk/youku.ipk -T 120 -t 10 --no-check-certificate ${url}
 		tar zxvf /tmp/youku/ipk/youku.ipk -C /tmp/youku/ipk
 		tar zxvf /tmp/youku/ipk/data.tar.gz -C /tmp/youku/ipk
-		cp $(find /tmp/youku/ipk/ -name "ikuacc") $path/ikuacc/ikuacc.${VERSION}
+		cp $(find /tmp/youku/ipk/ -name "ikuacc") $path/ikuacc/ikuacc.${version}
 
-		md5=$(md5sum $path/ikuacc/ikuacc.${VERSION}|awk '{print$1}')
+		md5=$(md5sum $path/ikuacc/ikuacc.${version}|awk '{print $1}')
 		sleep 1
 			rm -rf /tmp/youku/ipk/*
 	 	done
-	chmod 755 $path/ikuacc/ikuacc.${VERSION}
- 	uci set youku.youku.VERSION=${VERSION}
+	chmod 755 $path/ikuacc/ikuacc.${version}
+ 	uci set youku.general.version=${version}
  	uci commit youku
 	fi
-cp $path/ikuacc/ikuacc.$VERSION $YoukuHome/bin/ikuacc
+cp $path/ikuacc/ikuacc.$version $YoukuHome/bin/ikuacc
 ikuacc="$YoukuHome/bin/ikuacc"
 fi
 sleep 1
-wksn="$(uci get -q youku.youku.opsn)"
+wksn="$(uci get -q youku.general.sn)"
 str="--device-serial-number="0000$wksn" --mobile-meta-path="$YoukuHome/meta" --mobile-data-path="
 i=0
-while [ "$(uci get -q youku.@path[$i].path)" != "" ]
+while [ "$(uci get -q youku.@paths[$i].path)" != "" ]
 do
-partsize=`df -m | grep $(uci get -q youku.@path[$i].path) | awk '{print $2 }'`
+partsize=`df -m | grep $(uci get -q youku.@paths[$i].path) | awk '{print $2 }'`
 [ ${partsize} -gt 500 ] && {
-	if [ $(uci get -q youku.@path[$i].pathhc) != "" ]
-	then
-		hc=":$(uci get -q youku.@path[$i].pathhc)"
+	if [ $(uci get -q youku.@paths[$i].cache) != "" ]; then
+		hc=":$(uci get -q youku.@paths[$i].cache)"
 	else
 		hc=""
 	fi
 	[ -d "$path/youku" ]||mkdir -p $path/youku
-	path=$(uci get -q youku.@path[$i].path)
-	if [ -d $path/youku/data ] ;then	#兼容官方缓存
+	path=$(uci get -q youku.@paths[$i].path)
+	if [ -d $path/youku/data ]; then	#兼容官方缓存
 		ln -sfn $path/youku/data $YoukuHome/data/data$i
 	else
 		ln -sfn $path $YoukuHome/data/data$i
@@ -117,11 +112,9 @@ sdt="0"
 while true
 do
 	sleep 1
-	if [ "$(uci get -q youku.youku.cqboot)" = "$(date +%H%M)" ]
-	then
+	if [ "$(uci get -q youku.general.reboot)" = "$(date +%H%M)" ]; then
 		sleep 30
-		if [ "$(uci get -q youku.youku.ikrebot)" = "1" ]
-		then
+		if [ "$(uci get -q youku.general.ikreboot)" = "1" ]; then
 			killall ikuacc
 			sleep 3
 		else
@@ -130,10 +123,8 @@ do
 	fi
 	sleep 5
 
-	if [ "$(uci get -q youku.youku.enable)" = "1" ]
-	then
-		if [ "$(pidof ikuacc)" = "" ]
-		then
+	if [ "$(uci get -q youku.general.enable)" = "1" ]; then
+		if [ "$(pidof ikuacc)" = "" ]; then
 			sleep 5
 			$ikuacc ${str%?} &
 			sleep 20
@@ -141,16 +132,15 @@ do
 			sdt="1"
 		fi
 	fi
-	if [ "$sdt" = "1" ]
-	then
-		wget -O - 'http://127.0.0.1:8908/peer/limit/network/set?upload_model='"$(uci get -q youku.youku.wkmod)" > /dev/null 2>&1
+	if [ "$sdt" = "1" ]; then
+		wget -O - 'http://127.0.0.1:8908/peer/limit/network/set?upload_model='"$(uci get -q youku.general.mode)" > /dev/null 2>&1
 		sleep 2
 		sdt="0"
 	fi
-	if [ "$(uci get -q youku.youku.enable)" = "0" ]
-	then
+	if [ "$(uci get -q youku.general.enable)" = "0" ]; then
 		killall -9 ikuacc
 		exit 0
 	fi
 	sleep 30
 done
+

@@ -17,7 +17,7 @@ define Package/luci-app-youku
   CATEGORY:=LuCI
   SUBMENU:=3. Applications
   TITLE:=Luci Support for Youku acc.
-  DEPENDS:=+luci +libstdcpp +libthread-db +librt +wget +curl
+  DEPENDS:=+luci +luci-lib-jsonc +libstdcpp +libthread-db +librt +wget +curl
   PKGARCH:=all
 endef
 
