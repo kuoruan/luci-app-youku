@@ -42,11 +42,20 @@ s1.anonymous = true
 
 if (status == 0) then
 	s1:tab("income", translate("Income"))
-	s1:taboption("income", DummyValue, "cursn", translate("<strong>当前正在使用的S/N: </strong>")).default = sn
-	s1:taboption("income", DummyValue, "username", translate("<strong>绑定用戶: </strong>")).default = user.data.name
-	s1:taboption("income", DummyValue, "today", translate("<strong>今日收益: </strong>")).default = credit.data.credits_today
-	s1:taboption("income", DummyValue, "lastday", translate("<strong>昨日收益: </strong>")).default = credit.data.credits_lastday
-	s1:taboption("income", DummyValue, "total", translate("<strong>总收益: </strong>")).default = credit.data.total_credits
+	s1:taboption("income", DummyValue, "cursn", "<strong>"..translate("当前使用的S/N: ").."</strong>").default = sn
+	if(credit.code == 11) then --当前无数据
+		o = s1:taboption("income", DummyValue, "nodata", "<strong>"..translate("无更多信息: ").."</strong>")
+		o.default = translate("绑定新用户后需要第二天才能显示收益！")
+	else
+		o = s1:taboption("income", DummyValue, "username", "<strong>"..translate("已绑定的用戶 :").."</strong>")
+		o.default = user.data.name
+		o = s1:taboption("income", DummyValue, "today", "<strong>"..translate("今日收益: ").."</strong>")
+		o.default = credit.data.credits_today
+		o = s1:taboption("income", DummyValue, "lastday", "<strong>"..translate("昨日收益: ").."</strong>")
+		o.default = credit.data.credits_lastday
+		o = s1:taboption("income", DummyValue, "total", "<strong>"..translate("总收益: ").."</strong>")
+		o.default = credit.data.total_credits
+	end
 elseif (status == 25) then
 	local bdlink = luci.sys.exec("getykbdlink 0000$(uci get -q youku.general.sn)|sed -e's/&/&amp;/g'")
 	bind = "<input type=\"button\" value=\""..translate("绑定优酷帐号").."\" onclick=\"window.open('".. bdlink .."')\" style=\"margin-left:20px;\">"
