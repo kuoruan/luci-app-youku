@@ -3,12 +3,14 @@
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
+# http://blog.kuoruan.com/ kuoruan <kuoruan@gmail.com>
 #
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-youku
-PKG_RELEASE:=1.0
+PKG_VERSION:=1.2
+PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -25,6 +27,10 @@ define Package/luci-app-youku/description
 	Luci Support for Youku acc,only chinese.
 endef
 
+define Package/luci-app-youku/conffiles
+/etc/config/youku
+endef
+
 define Package/luci-app-youku/postinst
 #!/bin/sh
 [ -n "${IPKG_INSTROOT}" ] || {
@@ -33,7 +39,24 @@ define Package/luci-app-youku/postinst
 }
 endef
 
+define Package/luci-app-youku/prerm
+#!/bin/sh
+/etc/init.d/youku stop
+
+uci delete ucitrack.@youku[-1] >/dev/null 2>&1
+uci commit ucitrack
+
+rm -f /tmp/luci-indexcache
+exit 0
+endef
+
 define Build/Compile
+endef
+
+define Package/luci-app-youku/postrm
+#!/bin/sh
+rm -f /etc/config/youku
+rm -rf /etc/youku/
 endef
 
 define Package/luci-app-youku/install

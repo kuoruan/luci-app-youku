@@ -3,18 +3,17 @@
 START=99
 
 start(){
-	killall -9 ikuacc youkudome
+	killall -9 ikuacc youku-main
 	sleep 1
-	/lib/youku/youkudome &
+	/etc/youku/youku-main &
 }
 
 stop(){
-	killall -9 ikuacc youkudome
+	killall -9 ikuacc youku-main
 }
 
 restart(){
-	killall -9 ikuacc youkudome
+	killall -9 ikuacc youku-main
 	sleep 1
-	/lib/youku/youkudome &
+	/etc/youku/youku-main &
 }
-

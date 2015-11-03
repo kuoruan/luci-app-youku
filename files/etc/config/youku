@@ -1,6 +1,4 @@
 
-config 'settings' 'general'
+config youku 'config'
 	option	enable	'0'
-	option	sn	''
 	option	mode	'0'
-

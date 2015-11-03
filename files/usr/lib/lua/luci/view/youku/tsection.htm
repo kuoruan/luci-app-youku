@@ -1,0 +1,66 @@
+<%#
+ Copyright 2015 kuoruan -- kuoruan@gmail.com
+ Licensed to the public under the Apache License 2.0.
+ Based on tsection.htm, ucisection.htm, tabcontainer.htm
+-%>
+
+<%
+local jsonc = require "luci.jsonc"
+local credit = jsonc.parse(luci.sys.exec("cat /tmp/credit"))
+%>
+<fieldset class="cbi-section" id="cbi-<%=self.config%>-<%=self.sectiontype%>">
+	<% if self.title and #self.title > 0 then -%>
+		<legend><%=self.title%></legend>
+	<%- end %>
+	<div class="cbi-section-descr"><%=self.description%></div>
+	<% local isempty = true for i, k in ipairs(self:cfgsections()) do -%>
+		<% if not self.anonymous then -%>
+			<h3><%=section:upper()%></h3>
+		<%- end %>
+
+		<%- section = k; isempty = false -%>
+
+		<%+cbi/tabmenu%>
+
+		<fieldset class="cbi-section-node<% if self.tabs then %> cbi-section-node-tabbed<% end %>" id="cbi-<%=self.config%>-<%=section%>">
+			<% for tab, data in pairs(self.tabs) do -%>
+				<% if tab == "info" then -%>
+					<div class="cbi-tabcontainer" id="container.<%=self.config%>.<%=section%>.<%=tab%>"<% if tab ~= self.selected_tab then %> style="display:none"<% end %>>
+						<style type="text/css">
+						.info {width: 100%;}
+						.info td{border-top: 0;border-bottom: 1px solid #ddd;}
+						.info .t{text-align: right;font-weight:bold;width: 25%;}
+						.info .m{text-align: left;}
+						</style>
+						<table width="100%" cellspacing="10" class="info">
+							<% self:render_tab(tab, section, scope or {}) %>
+							<% if(credit.code == 11) then -%>
+							<tr><td class="t"><%:无任何信息: %></td><td class="m">绑定新用户后需要一段时间之后才会显示收益信息！</td></tr>
+							<% elseif (credit.code == 0) then -%>
+							<tr><td class="t"><%:今日收益: %></td><td class="m"><%=credit.data.credits_today%></td></tr>
+							<tr><td class="t"><%:昨日收益: %></td><td class="m"><%=credit.data.credits_lastday%></td></tr>
+							<tr><td class="t"><%:总收益: %></td><td class="m"><%=credit.data.total_credits%></td></tr>
+							<% else -%>
+							<tr><td class="t"><%:获取信息出错: %></td><td class="m"><%=credit.text%></td></tr>
+							<% end -%>
+						</table>
+					</div>
+					<script type="text/javascript">cbi_t_add('<%=self.config%>.<%=section%>', '<%=tab%>')</script>
+				<%- else -%>
+					<div class="cbi-tabcontainer" id="container.<%=self.config%>.<%=section%>.<%=tab%>"<% if tab ~= self.selected_tab then %> style="display:none"<% end %>>
+						<% if data.description then %><div class="cbi-tab-descr"><%=data.description%></div><% end %>
+						<% self:render_tab(tab, section, scope or {}) %>
+					</div>
+					<script type="text/javascript">cbi_t_add('<%=self.config%>.<%=section%>', '<%=tab%>')</script>
+				<%- end %>
+			<%- end %>
+		</fieldset>
+		<br />
+	<%- end %>
+
+	<% if isempty then -%>
+		<em><%:This section contains no values yet%><br /><br /></em>
+	<%- end %>
+</fieldset>
+<script src='http://libs.baidu.com/jquery/1.7.2/jquery.min.js'></script>
+<script>setInterval(function(){$.get('/cgi-bin/luci/youku-info',function(s){if(1 == s.success){$('#speed').html(s.data)}},'json')},3000)</script>
