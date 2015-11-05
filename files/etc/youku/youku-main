@@ -13,6 +13,9 @@ bootup() {
 	mkdir -p $YoukuHome/bin
 	mkdir -p $YoukuHome/data
 	return 0
+	# for plugin needed
+	/etc/init.d/cron enable
+	/etc/init.d/cron start
 }
 
 optimize() {
@@ -125,7 +128,7 @@ while true; do
 			sleep 5
 			$ikuacc ${str%?} &
 			sleep 20
-			optimize
+			#optimize
 			sdt="1"
 		fi
 	else
