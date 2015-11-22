@@ -1,6 +1,6 @@
 #!/bin/sh
 
-wan="$(uci get -q network.wan.ifname)"
+wan="$(uci -q get network.wan.ifname)"
 rx1="$(cat /proc/net/dev|grep "$wan"|awk '{print $2}')"
 tx1="$(cat /proc/net/dev|grep "$wan"|awk '{print $10}')"
 sleep 1

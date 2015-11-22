@@ -38,7 +38,7 @@ max-cache-buffer-size=24&\
 	return 0
 }
 local ikuacc="ikuacc"
-path=$(uci get -q youku.@paths[0].path)
+path=$(uci -q get youku.@paths[0].path)
 if [ "$path" = "" ]; then
 	killall -9 ikuacc
 	uci set youku.config.enable="0"
@@ -52,7 +52,7 @@ bootup
 [ -d "$path/meta" ] || mkdir -p $path/meta
 ln -sfn $path/meta $YoukuHome
 
-if [ "$(uci get -q youku.config.enable)" = "0" ]; then
+if [ "$(uci -q get youku.config.enable)" = "0" ]; then
 	[ "$(cat /etc/crontabs/root|grep /etc/youku/youku-guard)" ] && sed -i 's/\*\/5 \* \* \* \* sh \/etc\/youku\/youku-guard > \/dev\/null 2>&1//g' /etc/crontabs/root
 	[ "$(cat /etc/firewall.user|grep "tcp --dport 4466")" ] && sed -i 's/iptables \-I INPUT \-p tcp \-\-dport 4466 \-j ACCEPT//g' /etc/firewall.user
 	[ "$(cat /etc/firewall.user|grep "udp --dport 4466")" ] && sed -i 's/iptables \-I INPUT \-p udp \-\-dport 4466 \-j ACCEPT//g' /etc/firewall.user
@@ -66,7 +66,7 @@ else
 	[ "$(cat /etc/firewall.user|grep "input_wan_rule -p udp")" ] || echo "iptables -I input_wan_rule -p udp -j ACCEPT" >> /etc/firewall.user
 fi
 
-version=$(uci get -q youku.config.version)
+version=$(uci -q get youku.config.version)
 url=$(grep "\<$version\>" /etc/youku/FILES|awk '{print $3}')
 tmd5=$(grep "\<$version\>" /etc/youku/FILES|awk '{print $2}')
 if [ ! -z "$version" ]; then
@@ -86,19 +86,19 @@ if [ ! -z "$version" ]; then
 	ikuacc="$YoukuHome/bin/ikuacc"
 fi
 sleep 1
-wksn="$(uci get -q youku.config.sn)"
+wksn="$(uci -q get youku.config.sn)"
 str="--device-serial-number="0000$wksn" --mobile-meta-path="$YoukuHome/meta" --mobile-data-path="
 i=0
-while [ "$(uci get -q youku.@paths[$i].path)" != "" ]; do
-	partsize=`df -m | grep $(uci get -q youku.@paths[$i].path)|awk '{print $2 }'`
+while [ "$(uci -q get youku.@paths[$i].path)" != "" ]; do
+	partsize=`df -m | grep $(uci -q get youku.@paths[$i].path)|awk '{print $2 }'`
 	[ ${partsize} -gt 500 ] && {
-		if [ $(uci get -q youku.@paths[$i].cache) != "" ]; then
-			cache=":$(uci get -q youku.@paths[$i].cache)"
+		if [ $(uci -q get youku.@paths[$i].cache) != "" ]; then
+			cache=":$(uci -q get youku.@paths[$i].cache)"
 		else
 			cache=""
 		fi
 		[ -d "$path/youku" ] || mkdir -p $path/youku
-		path=$(uci get -q youku.@paths[$i].path)
+		path=$(uci -q get youku.@paths[$i].path)
 		if [ -d $path/youku/data ]; then	#兼容官方缓存
 			ln -sfn $path/youku/data $YoukuHome/data/data$i
 		else
@@ -111,9 +111,9 @@ done
 sdt="0"
 while true; do
 	sleep 1
-	if [ "$(uci get -q youku.config.restart)" = "$(date +%H%M)" ]; then
+	if [ "$(uci -q get youku.config.restart)" = "$(date +%H%M)" ]; then
 		sleep 30
-		if [ "$(uci get -q youku.config.ikrestart)" = "1" ]; then
+		if [ "$(uci -q get youku.config.ikrestart)" = "1" ]; then
 			killall -9 ikuacc
 			echo `date '+%Y/%m/%d %T'` > /etc/youku/restart.log
 			sleep 3
@@ -123,7 +123,7 @@ while true; do
 	fi
 	sleep 5
 
-	if [ "$(uci get -q youku.config.enable)" = "1" ]; then
+	if [ "$(uci -q get youku.config.enable)" = "1" ]; then
 		if [ "$(pidof ikuacc)" = "" ]; then
 			sleep 5
 			$ikuacc ${str%?} &
@@ -137,7 +137,7 @@ while true; do
 	fi
 
 	if [ "$sdt" = "1" ]; then
-		wget -O - 'http://127.0.0.1:8908/peer/limit/network/set?upload_model='"$(uci get -q youku.config.mode)" > /dev/null 2>&1
+		wget -O - 'http://127.0.0.1:8908/peer/limit/network/set?upload_model='"$(uci -q get youku.config.mode)" > /dev/null 2>&1
 		sleep 2
 		sdt="0"
 	fi

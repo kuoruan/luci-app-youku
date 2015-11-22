@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ "$(uci get -q youku.config.enable)" = "1" ]; then
+if [ "$(uci -q get youku.config.enable)" = "1" ]; then
 	if [ "$(pidof ikuacc)" = "" -a "$(pidof youku-main)" = "" ]; then
 		echo `date '+%Y/%m/%d %T'` > /etc/youku/restart.log
 		/etc/youku/youku-main &

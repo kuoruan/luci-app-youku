@@ -10,7 +10,7 @@ end
 -- 根据MAC计算的S/N
 local macsn = luci.sys.exec("echo 2115$(cat /sys/class/net/br-lan/address|tr -d ':'|md5sum |tr -dc [0-9]|cut -c 0-12)")
 -- S/N
-local sn = luci.sys.exec("uci get -q youku.config.sn")
+local sn = luci.sys.exec("uci -q get youku.config.sn")
 -- 提示信息
 local notice = ""
 local sbtn = ""
@@ -29,7 +29,7 @@ end
 if (luci.sys.call("pidof ikuacc > /dev/null") == 0) then
 	local speed = luci.sys.exec("/etc/youku/youku-info")
 	m = Map("youku", translate("优酷路由宝"), translate("正在运行...").."<span id=\"speed\">"..speed.."</span>")
-	local link = luci.sys.exec("printf http://$(uci get -q network.lan.ipaddr):8908/peer/config/config.htm")
+	local link = luci.sys.exec("printf http://$(uci -q get network.lan.ipaddr):8908/peer/config/config.htm")
 	sbtn = "<input type=\"button\" value=\""..translate("详细设置").."\" onclick=\"window.open('"..link.."')\" style=\"margin-left:10px;\" />"
 elseif (luci.sys.call("pidof youku-main > /dev/null") == 0) then
 	m = Map("youku", translate("优酷路由宝"), "<span id=\"speed\">"..translate("正在准备，请稍候...").."</span>")
@@ -51,7 +51,7 @@ if (status == 0) then
 	name.template = "youku/dvalue"
 	name.default = user.data.name
 elseif (status == 25) then
-	local bdlink = luci.sys.exec("getykbdlink 0000$(uci get -q youku.config.sn)|sed -e's/&/&amp;/g'")
+	local bdlink = luci.sys.exec("getykbdlink 0000$(uci -q get youku.config.sn)|sed -e's/&/&amp;/g'")
 	notice = "<input type=\"button\" value=\""..translate("绑定优酷帐号").."\" onclick=\"window.open('".. bdlink .."')\" style=\"margin-left:10px;\" />"
 elseif (status == 10259) then
 	notice = "<span style=\"margin-left:10px;font-weight:bold;color:red;\">"..translate("S/N格式错误！").."</span>"
@@ -79,7 +79,7 @@ o:value(macsn, macsn..translate("(根据MAC获得)"))
 
 o = s1:taboption("config", ListValue, "version", translate("插件版本"))
 o:value("", translate("1.5.0211.47252(默认)"))
-for _, p_ipk in luci.util.vspairs(luci.util.split(luci.sys.exec("ls $(uci get -q youku.@paths[0].path)/ikuacc |grep ikuacc|sed 's/ikuacc.//'"))) do
+for _, p_ipk in luci.util.vspairs(luci.util.split(luci.sys.exec("ls $(uci -q get youku.@paths[0].path)/ikuacc |grep ikuacc|sed 's/ikuacc.//'"))) do
 	if isempty(p_ipk) == false then
 		o:value(p_ipk)
 	end
